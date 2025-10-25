@@ -28,7 +28,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [demoMode, setDemoMode] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const dispatch = useAppDispatch();
@@ -87,7 +86,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     const isPasswordValid = validatePassword(password);
 
     if (isEmailValid && isPasswordValid) {
-      dispatch(login({ credentials: { email, password }, demoMode }));
+      dispatch(login({ email, password }));
     }
   };
 
@@ -190,17 +189,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         <TouchableOpacity style={styles.forgotPassword}>
           <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
         </TouchableOpacity>
-
-        {/* Demo Mode Toggle */}
-        <TouchableOpacity
-          style={styles.demoModeToggle}
-          onPress={() => setDemoMode(!demoMode)}
-          activeOpacity={0.7}>
-          <View style={[styles.checkbox, demoMode && styles.checkboxChecked]}>
-            {demoMode && <Icon name="checkmark" size={16} color={colors.textWhite} />}
-          </View>
-          <Text style={styles.demoModeLabel}>Enable Demo Mode</Text>
-        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -209,7 +197,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -254,7 +242,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 8,
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     paddingHorizontal: 16,
   },
   inputIcon: {
@@ -303,32 +291,6 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     fontSize: 14,
     color: colors.textPrimary,
-  },
-  demoModeToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 32,
-    padding: 12,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderWidth: 2,
-    borderColor: colors.border,
-    borderRadius: 4,
-    marginRight: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.backgroundWhite,
-  },
-  checkboxChecked: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  demoModeLabel: {
-    fontSize: 12,
-    color: colors.textSecondary,
   },
 });
 

@@ -70,7 +70,7 @@ export const toastConfig = {
 const styles = StyleSheet.create({
   successToast: {
     borderLeftColor: colors.success,
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     borderLeftWidth: 5,
     borderRadius: 12,
     height: 'auto',
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   },
   errorToast: {
     borderLeftColor: colors.error,
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     borderLeftWidth: 5,
     borderRadius: 12,
     height: 'auto',
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   },
   infoToast: {
     borderLeftColor: colors.info,
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     borderLeftWidth: 5,
     borderRadius: 12,
     height: 'auto',
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   },
   warningToast: {
     borderLeftColor: colors.warning,
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     borderLeftWidth: 5,
     borderRadius: 12,
     height: 'auto',

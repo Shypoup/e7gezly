@@ -58,10 +58,10 @@ const ComingSoonScreen: React.FC<ComingSoonScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
   },
   header: {
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     padding: 20,
     flexDirection: 'row',
     alignItems: 'center',

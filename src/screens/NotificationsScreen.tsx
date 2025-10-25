@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     padding: 20,
     paddingTop: 60,
     flexDirection: 'row',

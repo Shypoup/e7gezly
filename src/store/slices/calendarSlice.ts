@@ -6,6 +6,7 @@ interface CalendarState {
   slots: CalendarSlot[];
   loading: boolean;
   error: string | null;
+  message: string | null;
   selectedSlot: CalendarSlot | null;
 }
 
@@ -13,19 +14,22 @@ const initialState: CalendarState = {
   slots: [],
   loading: false,
   error: null,
+  message: null,
   selectedSlot: null,
 };
 
 export const fetchCalendarSetup = createAsyncThunk(
   'calendar/fetchSetup',
   async (
-    payload: { serviceId: number; demoMode: boolean },
+    serviceId: number,
     { rejectWithValue },
   ) => {
     try {
-      const { serviceId, demoMode } = payload;
-      const response = await ServicesApi.getCalendarSetup(serviceId, demoMode);
-      return response.data;
+      const response = await ServicesApi.getCalendarSetup(serviceId);
+      return {
+        data: response.data,
+        message: response.responseMessage,
+      };
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to fetch calendar data');
     }
@@ -44,6 +48,7 @@ const calendarSlice = createSlice({
     },
     clearCalendarError: (state) => {
       state.error = null;
+      state.message = null;
     },
   },
   extraReducers: (builder) => {
@@ -51,15 +56,18 @@ const calendarSlice = createSlice({
       .addCase(fetchCalendarSetup.pending, (state) => {
         state.loading = true;
         state.error = null;
+        state.message = null;
       })
       .addCase(fetchCalendarSetup.fulfilled, (state, action) => {
         state.loading = false;
-        state.slots = action.payload;
+        state.slots = action.payload.data;
+        state.message = action.payload.message;
         state.error = null;
       })
       .addCase(fetchCalendarSetup.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+        state.message = null;
       });
   },
 });

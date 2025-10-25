@@ -7,7 +7,7 @@ export const colors = {
 
   // Background Colors
   background: '#F5F7FA',
-  backgroundWhite: '#fff',
+  backgroundSecondary: '#fff',
   backgroundGray: '#F5F5F5',
 
   // Text Colors
@@ -23,6 +23,7 @@ export const colors = {
   warningLight: '#FFF3E0',
   error: '#f44336',
   errorLight: '#ffebee',
+  danger: '#f44336',
   info: '#1a73e8',
   infoLight: '#e3f2fd',
 
@@ -44,10 +45,7 @@ export const colors = {
   statusBusy: '#FF9800',
   statusUnavailable: '#f44336',
 
-  // Demo Mode Colors
-  demoBackground: '#fff3cd',
-  demoBorder: '#ffc107',
-  demoText: '#856404',
+
 
   // Icon Background Colors (for Services)
   iconBg1: '#E3F2FD', // Light Blue
@@ -55,6 +53,23 @@ export const colors = {
   iconBg3: '#F3E5F5', // Light Purple
   iconBg4: '#FFF3E0', // Light Orange
   iconBg5: '#FCE4EC', // Light Pink
+
+  // Calendar Colors
+  calendarIcon: '#ccc',
+  dateCardBorder: '#e0e0e0',
+  dateCardSelected: '#1a73e8',
+  timeSlotAvailable: '#4CAF50',
+  timeSlotLimited: '#FF6B6B',
+  timeSlotText: '#666',
+  modalOverlay: 'rgba(0, 0, 0, 0.5)',
+  modalIcon: '#1a73e8',
+  bookingIcon: '#666',
+  priceIcon: '#4CAF50',
+
+  // Menu/Navigation Colors
+  menuIcon: '#666',
+  chevronIcon: '#ccc',
+  activeIcon: '#1a73e8',
 
   // Gradient Colors
   gradientStart: '#4C6FFF',

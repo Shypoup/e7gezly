@@ -3,9 +3,8 @@ import {
   LoginRequest,
   LoginData,
 } from '../../../types';
-import { mockLoginData } from '../../../utils/mockData';
 
-const BASE_URL = 'https://e7gezly-1054846845303.us-central1.run.app/api';
+const BASE_URL = 'https://e7gezly-1054846845303.us-central1.run.app/api/v1';
 
 class AuthApiService {
   private async request<T>(
@@ -34,18 +33,9 @@ class AuthApiService {
     }
   }
 
-  private async delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
   async login(
     credentials: LoginRequest,
-    demoMode: boolean = false,
   ): Promise<ApiResponse<LoginData>> {
-    if (demoMode) {
-      await this.delay(800); // Simulate network delay
-      return mockLoginData;
-    }
     return this.request<LoginData>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),

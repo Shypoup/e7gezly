@@ -16,9 +16,9 @@ const initialState: ServicesState = {
 
 export const fetchServices = createAsyncThunk(
   'services/fetchServices',
-  async (demoMode: boolean, { rejectWithValue }) => {
+  async ({ serviceTypeId = 3, clientId = 166 }: { serviceTypeId?: number; clientId?: number } = {}, { rejectWithValue }) => {
     try {
-      const response = await ServicesApi.getServices( demoMode);
+      const response = await ServicesApi.getServices(serviceTypeId, clientId);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to fetch services');

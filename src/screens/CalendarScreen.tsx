@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   RefreshControl,
   Modal,
   Pressable,
+  FlatList,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
@@ -28,47 +29,112 @@ type CalendarScreenProps = {
 const CalendarScreen: React.FC<CalendarScreenProps> = ({ navigation, route }) => {
   const { service } = route.params;
   const dispatch = useAppDispatch();
-  const { slots, loading, error } = useAppSelector(
+  const { slots, loading, error, message } = useAppSelector(
     (state) => state.calendar,
   );
-  const { demoMode } = useAppSelector((state) => state.auth);
 
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedSlotForBooking, setSelectedSlotForBooking] = useState<CalendarSlot | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
+  // Get the image from clientServiceImagesList or fallback to logo field
+  const serviceImageUrl = service.clientServiceImagesList?.[0]?.image || service.logo;
+
   useEffect(() => {
-    dispatch(fetchCalendarSetup({ serviceId: service?.clientServiceId, demoMode }));
-  }, [dispatch, service?.clientServiceId, demoMode]);
+    dispatch(fetchCalendarSetup(service?.clientServiceId));
+  }, [dispatch, service?.clientServiceId]);
 
-  const handleRefresh = () => {
-    dispatch(fetchCalendarSetup({ serviceId: service?.clientServiceId, demoMode }));
-  };
+  const handleRefresh = useCallback(() => {
+    dispatch(fetchCalendarSetup(service?.clientServiceId));
+  }, [dispatch, service?.clientServiceId]);
 
-  // Group slots by date
-  const groupedSlots: { [key: string]: CalendarSlot[] } = {};
-  slots.forEach((slot) => {
-    if (!groupedSlots[slot.day]) {
-      groupedSlots[slot.day] = [];
-    }
-    groupedSlots[slot.day].push(slot);
-  });
+  // Memoize grouped slots calculation to prevent unnecessary re-renders
+  const groupedSlots = useMemo(() => {
+    const grouped: { [key: string]: CalendarSlot[] } = {};
+    slots.forEach((slot) => {
+      if (!grouped[slot.day]) {
+        grouped[slot.day] = [];
+      }
+      grouped[slot.day].push(slot);
+    });
+    return grouped;
+  }, [slots]);
 
-  const dates = Object.keys(groupedSlots).sort();
+  const dates = useMemo(() => Object.keys(groupedSlots).sort(), [groupedSlots]);
 
-  const handleDatePress = (date: string) => {
+  const handleDatePress = useCallback((date: string) => {
     setSelectedDate(date);
-  };
+  }, []);
 
-  const handleSlotPress = (slot: CalendarSlot) => {
+  // Memoized render function for date items
+  const renderDateItem = useCallback(({ item: date }: { item: string }) => {
+    const dateObj = new Date(date);
+    const dayName = dateObj.toLocaleDateString('en-US', {
+      weekday: 'short',
+    });
+    const dayNumber = dateObj.getDate();
+    const isSelected = selectedDate === date;
+
+    return (
+      <TouchableOpacity
+        style={[
+          styles.dateCard,
+          isSelected && styles.dateCardSelected,
+        ]}
+        onPress={() => handleDatePress(date)}>
+        <Text
+          style={[
+            styles.dayName,
+            isSelected && styles.dateTextSelected,
+          ]}>
+          {dayName}
+        </Text>
+        <Text
+          style={[
+            styles.dayNumber,
+            isSelected && styles.dateTextSelected,
+          ]}>
+          {dayNumber}
+        </Text>
+      </TouchableOpacity>
+    );
+  }, [selectedDate, handleDatePress]);
+
+  const handleSlotPress = useCallback((slot: CalendarSlot) => {
     dispatch(selectSlot(slot));
     setSelectedSlotForBooking(slot);
     setModalVisible(true);
     setBookingSuccess(false);
-  };
+  }, [dispatch]);
 
-  const handleConfirmBooking = () => {
+  // Memoized render function for time slot items
+  const renderTimeSlotItem = useCallback(({ item: slot }: { item: CalendarSlot }) => {
+    const isAvailable = slot.remainingRequests > 0;
+    const slotsColor = slot.remainingRequests <= 3 ? colors.timeSlotLimited : colors.timeSlotText;
+
+    return (
+      <TouchableOpacity
+        style={[
+          styles.timeSlotCard,
+          !isAvailable && styles.timeSlotDisabled,
+        ]}
+        onPress={() => {
+          if (isAvailable) {
+            handleSlotPress(slot);
+          }
+        }}
+        disabled={!isAvailable}
+        activeOpacity={isAvailable ? 0.7 : 1}>
+        <Text style={styles.slotTime}>{slot.hour}</Text>
+        <Text style={[styles.slotsLeft, { color: slotsColor }]}>
+          {slot.remainingRequests} slots left
+        </Text>
+      </TouchableOpacity>
+    );
+  }, [handleSlotPress]);
+
+  const handleConfirmBooking = useCallback(() => {
     // Here you would call your booking API
     setBookingSuccess(true);
     // Close modal after 2 seconds
@@ -77,15 +143,15 @@ const CalendarScreen: React.FC<CalendarScreenProps> = ({ navigation, route }) =>
       setBookingSuccess(false);
       setSelectedSlotForBooking(null);
     }, 2000);
-  };
+  }, []);
 
-  const handleCancelBooking = () => {
+  const handleCancelBooking = useCallback(() => {
     setModalVisible(false);
     setSelectedSlotForBooking(null);
     setBookingSuccess(false);
-  };
+  }, []);
 
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
@@ -93,17 +159,12 @@ const CalendarScreen: React.FC<CalendarScreenProps> = ({ navigation, route }) =>
       month: 'long',
       day: 'numeric',
     });
-  };
+  }, []);
 
-  if (loading && slots.length === 0) {
-    return <CalendarSkeleton />;
-  }
-
-  if (error && slots.length === 0) {
-    return <ErrorMessage message={error} onRetry={handleRefresh} />;
-  }
-
-  const displayedSlots = selectedDate ? groupedSlots[selectedDate] || [] : [];
+  // Memoize displayed slots to prevent unnecessary recalculation
+  const displayedSlots = useMemo(() => {
+    return selectedDate ? groupedSlots[selectedDate] || [] : [];
+  }, [selectedDate, groupedSlots]);
 
   return (
     <View style={styles.container}>
@@ -111,7 +172,7 @@ const CalendarScreen: React.FC<CalendarScreenProps> = ({ navigation, route }) =>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}>
-          <Icon name="arrow-back" size={24} color="#000" />
+          <Icon name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Service Details</Text>
         <View style={styles.headerRight} />
@@ -128,10 +189,10 @@ const CalendarScreen: React.FC<CalendarScreenProps> = ({ navigation, route }) =>
           />
         }>
         {/* Service Image */}
-        {service.logo ? (
+        {serviceImageUrl ? (
           <FastImage
             source={{ 
-              uri: service.logo,
+              uri: serviceImageUrl,
               priority: FastImage.priority.high,
             }}
             style={[styles.serviceImage, styles.placeholderImage]}
@@ -139,99 +200,89 @@ const CalendarScreen: React.FC<CalendarScreenProps> = ({ navigation, route }) =>
           />
         ) : (
           <View style={[styles.serviceImage, styles.placeholderImage]}>
-            <Icon name="medical" size={100} color="#5B4D9D" />
+            <Icon name="medical" size={100} color={colors.primary} />
           </View>
         )}
 
         {/* Service Info */}
         <View style={styles.serviceInfo}>
           <Text style={styles.serviceTitle}>{service.serviceName.en}</Text>
-          <Text style={styles.serviceTitleAr}>{service.serviceName.ar}</Text>
-          <Text style={styles.serviceDescription}>
-            {service.details}
-          </Text>
-
+          <Text style={styles.serviceDescription}>{service.details}</Text>
         </View>
+
+        {/* Loading State */}
+        {loading && slots.length === 0 && (
+          <View style={styles.loadingContainer}>
+            <Icon name="calendar-outline" size={80} color={colors.calendarIcon} />
+            <Text style={styles.loadingTitle}>Loading Available Slots...</Text>
+            <Text style={styles.loadingMessage}>Please wait while we fetch the available time slots</Text>
+          </View>
+        )}
+
+        {/* Error State */}
+        {error && slots.length === 0 && !loading && (
+          <View style={styles.noSlotsContainer}>
+            <Icon name="alert-circle-outline" size={80} color={colors.danger} />
+            <Text style={styles.noSlotsTitle}>Error Loading Slots</Text>
+            <Text style={styles.noSlotsMessage}>{error}</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
+              <Icon name="refresh" size={20} color={colors.textWhite} />
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* No Slots Available Message */}
+        {!loading && !error && slots.length === 0 && (
+          <View style={styles.noSlotsContainer}>
+            <Icon name="calendar-outline" size={80} color={colors.calendarIcon} />
+            <Text style={styles.noSlotsTitle}>No Available Slots</Text>
+            {message && (
+              <Text style={styles.noSlotsMessage}>{message}</Text>
+            )}
+          </View>
+        )}
 
         {/* Date Selection */}
-        <View style={styles.section}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.datesContainer}>
-            {dates.map((date) => {
-              const dateObj = new Date(date);
-              const dayName = dateObj.toLocaleDateString('en-US', {
-                weekday: 'short',
-              });
-              const dayNumber = dateObj.getDate();
-              const isSelected = selectedDate === date;
-
-              return (
-                <TouchableOpacity
-                  key={date}
-                  style={[
-                    styles.dateCard,
-                    isSelected && styles.dateCardSelected,
-                  ]}
-                  onPress={() => handleDatePress(date)}>
-                  <Text
-                    style={[
-                      styles.dayName,
-                      isSelected && styles.dateTextSelected,
-                    ]}>
-                    {dayName}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.dayNumber,
-                      isSelected && styles.dateTextSelected,
-                    ]}>
-                    {dayNumber}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </View>
+        {dates.length > 0 && (
+          <View style={styles.section}>
+            <FlatList
+              horizontal
+              data={dates}
+              keyExtractor={(item) => item}
+              renderItem={renderDateItem}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.datesContainer}
+              initialNumToRender={10}
+              maxToRenderPerBatch={10}
+              windowSize={5}
+              removeClippedSubviews={true}
+            />
+          </View>
+        )}
 
         {/* Time Slots */}
-        {selectedDate && (
+        {selectedDate && displayedSlots.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Available Time Slots</Text>
-            <View style={styles.slotsGrid}>
-              {displayedSlots.map((slot, index) => {
-                const isAvailable = slot.remainingRequests > 0;
-                const slotsColor = slot.remainingRequests <= 3 ? '#FF6B6B' : '#666';
-
-                return (
-                  <TouchableOpacity
-                    key={`${slot.day}-${slot.hour}-${index}`}
-                    style={[
-                      styles.timeSlotCard,
-                      !isAvailable && styles.timeSlotDisabled,
-                    ]}
-                    onPress={() => {
-                      if (isAvailable) {
-                        handleSlotPress(slot);
-                      }
-                    }}
-                    disabled={!isAvailable}
-                    activeOpacity={isAvailable ? 0.7 : 1}>
-                    <Text style={styles.slotTime}>{slot.hour}</Text>
-                    <Text style={[styles.slotsLeft, { color: slotsColor }]}>
-                      {slot.remainingRequests} slots left
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+            <FlatList
+              data={displayedSlots}
+              keyExtractor={(item, index) => `${item.day}-${item.hour}-${index}`}
+              renderItem={renderTimeSlotItem}
+              numColumns={2}
+              columnWrapperStyle={styles.slotsRow}
+              scrollEnabled={false}
+              initialNumToRender={10}
+              maxToRenderPerBatch={10}
+              windowSize={5}
+              removeClippedSubviews={true}
+            />
           </View>
         )}
 
         {!selectedDate && dates.length > 0 && (
           <View style={styles.emptyState}>
-            <Icon name="calendar-outline" size={64} color="#ccc" />
+            <Icon name="calendar-outline" size={64} color={colors.calendarIcon} />
             <Text style={styles.emptyStateText}>
               Please select a date to view available time slots
             </Text>
@@ -250,14 +301,14 @@ const CalendarScreen: React.FC<CalendarScreenProps> = ({ navigation, route }) =>
             {!bookingSuccess ? (
               <>
                 <View style={styles.modalHeader}>
-                  <Icon name="calendar" size={48} color="#1a73e8" />
+                  <Icon name="calendar" size={48} color={colors.modalIcon} />
                   <Text style={styles.modalTitle}>Booking Confirmation</Text>
                 </View>
 
                 {selectedSlotForBooking && (
                   <View style={styles.modalBody}>
                     <View style={styles.bookingDetail}>
-                      <Icon name="person-outline" size={24} color="#666" />
+                      <Icon name="person-outline" size={24} color={colors.bookingIcon} />
                       <View style={styles.detailTextContainer}>
                         <Text style={styles.detailLabel}>Service</Text>
                         <Text style={styles.detailValue}>{service.serviceName.en}</Text>
@@ -265,7 +316,7 @@ const CalendarScreen: React.FC<CalendarScreenProps> = ({ navigation, route }) =>
                     </View>
 
                     <View style={styles.bookingDetail}>
-                      <Icon name="calendar-outline" size={24} color="#666" />
+                      <Icon name="calendar-outline" size={24} color={colors.bookingIcon} />
                       <View style={styles.detailTextContainer}>
                         <Text style={styles.detailLabel}>Date</Text>
                         <Text style={styles.detailValue}>
@@ -275,7 +326,7 @@ const CalendarScreen: React.FC<CalendarScreenProps> = ({ navigation, route }) =>
                     </View>
 
                     <View style={styles.bookingDetail}>
-                      <Icon name="time-outline" size={24} color="#666" />
+                      <Icon name="time-outline" size={24} color={colors.bookingIcon} />
                       <View style={styles.detailTextContainer}>
                         <Text style={styles.detailLabel}>Time</Text>
                         <Text style={styles.detailValue}>{selectedSlotForBooking.hour}</Text>
@@ -283,7 +334,7 @@ const CalendarScreen: React.FC<CalendarScreenProps> = ({ navigation, route }) =>
                     </View>
 
                     <View style={styles.bookingDetail}>
-                      <Icon name="sunny-outline" size={24} color="#666" />
+                      <Icon name="sunny-outline" size={24} color={colors.bookingIcon} />
                       <View style={styles.detailTextContainer}>
                         <Text style={styles.detailLabel}>Shift</Text>
                         <Text style={styles.detailValue}>{selectedSlotForBooking.type.en}</Text>
@@ -291,7 +342,7 @@ const CalendarScreen: React.FC<CalendarScreenProps> = ({ navigation, route }) =>
                     </View>
 
                     <View style={styles.bookingDetail}>
-                      <Icon name="people-outline" size={24} color="#666" />
+                      <Icon name="people-outline" size={24} color={colors.bookingIcon} />
                       <View style={styles.detailTextContainer}>
                         <Text style={styles.detailLabel}>Available Slots</Text>
                         <Text style={styles.detailValue}>
@@ -302,7 +353,7 @@ const CalendarScreen: React.FC<CalendarScreenProps> = ({ navigation, route }) =>
 
                     {service.serviceFees > 0 && (
                       <View style={styles.bookingDetail}>
-                        <Icon name="cash-outline" size={24} color="#4CAF50" />
+                        <Icon name="cash-outline" size={24} color={colors.priceIcon} />
                         <View style={styles.detailTextContainer}>
                           <Text style={styles.detailLabel}>Price</Text>
                           <Text style={[styles.detailValue, styles.priceText]}>
@@ -329,8 +380,13 @@ const CalendarScreen: React.FC<CalendarScreenProps> = ({ navigation, route }) =>
               </>
             ) : (
               <View style={styles.successContainer}>
+                <TouchableOpacity 
+                  style={styles.closeButton}
+                  onPress={handleCancelBooking}>
+                  <Icon name="close" size={28} color={colors.textSecondary} />
+                </TouchableOpacity>
                 <View style={styles.successIconContainer}>
-                  <Icon name="checkmark-circle" size={80} color="#4CAF50" />
+                  <Icon name="checkmark-circle" size={80} color={colors.success} />
                 </View>
                 <Text style={styles.successTitle}>Booking Successful!</Text>
                 <Text style={styles.successMessage}>
@@ -348,10 +404,10 @@ const CalendarScreen: React.FC<CalendarScreenProps> = ({ navigation, route }) =>
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
   },
   header: {
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
@@ -393,12 +449,6 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginBottom: 12,
   },
-  serviceTitleAr: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.textPrimary,
-    marginBottom: 12,
-  },
   serviceDescription: {
     fontSize: 15,
     color: colors.textSecondary,
@@ -433,17 +483,17 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   dateCard: {
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 12,
     padding: 16,
     paddingHorizontal: 24,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.dateCardBorder,
   },
   dateCardSelected: {
-    backgroundColor: colors.info,
-    borderColor: colors.info,
+    backgroundColor: colors.dateCardSelected,
+    borderColor: colors.dateCardSelected,
   },
   dayName: {
     fontSize: 12,
@@ -459,16 +509,15 @@ const styles = StyleSheet.create({
   dateTextSelected: {
     color: colors.textWhite,
   },
-  slotsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
+  slotsRow: {
+    justifyContent: 'space-between',
+    paddingBottom: 12,
   },
   timeSlotCard: {
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 12,
     padding: 20,
-    width: '48%',
+    flex: 0.48,
     borderWidth: 1,
     borderColor: colors.border,
     shadowColor: colors.shadow,
@@ -503,14 +552,67 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     marginTop: 16,
   },
+  noSlotsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 80,
+    paddingHorizontal: 40,
+  },
+  noSlotsTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: colors.textPrimary,
+    marginTop: 24,
+    marginBottom: 12,
+  },
+  noSlotsMessage: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 80,
+    paddingHorizontal: 40,
+  },
+  loadingTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.textPrimary,
+    marginTop: 24,
+    marginBottom: 12,
+  },
+  loadingMessage: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.info,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 20,
+    gap: 8,
+  },
+  retryButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textWhite,
+  },
   // Modal Styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.modalOverlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
@@ -582,6 +684,14 @@ const styles = StyleSheet.create({
   successContainer: {
     alignItems: 'center',
     paddingVertical: 40,
+    position: 'relative',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    padding: 8,
+    zIndex: 1,
   },
   successIconContainer: {
     marginBottom: 20,

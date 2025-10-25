@@ -15,20 +15,26 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const AppNavigator: React.FC = () => {
   const dispatch = useAppDispatch();
   const { isAuthenticated } = useAppSelector((state) => state.auth);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
-      await dispatch(checkAuthStatus());
-      // Brief delay to ensure smooth transition from native splash
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 500);
+      try {
+        await dispatch(checkAuthStatus());
+      } catch (error) {
+        console.error('Auth check failed:', error);
+      } finally {
+        // Brief delay to ensure smooth transition
+        setTimeout(() => {
+          setIsCheckingAuth(false);
+        }, 300);
+      }
     };
     checkAuth();
   }, [dispatch]);
 
-  if (isLoading) {
+  // Show splash screen while checking authentication
+  if (isCheckingAuth) {
     return <SplashScreen />;
   }
 
@@ -37,16 +43,16 @@ const AppNavigator: React.FC = () => {
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
-        }}
-        initialRouteName={isAuthenticated ? 'MainTabs' : 'Login'}>
-        {!isAuthenticated ? (
-          <Stack.Screen name="Login" component={LoginScreen} />
-        ) : (
+          animation: 'none', // Disable animation on initial load
+        }}>
+        {isAuthenticated ? (
           <>
             <Stack.Screen name="MainTabs" component={BottomTabsNavigator} />
             <Stack.Screen name="Calendar" component={CalendarScreen} />
             <Stack.Screen name="ComingSoon" component={ComingSoonScreen} />
           </>
+        ) : (
+          <Stack.Screen name="Login" component={LoginScreen} />
         )}
       </Stack.Navigator>
     </NavigationContainer>

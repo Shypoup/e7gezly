@@ -32,7 +32,7 @@ const BottomTabsNavigator: React.FC = () => {
         tabBarActiveTintColor: colors.info,
         tabBarInactiveTintColor: colors.textTertiary,
         tabBarStyle: {
-          backgroundColor: colors.backgroundWhite,
+          backgroundColor: colors.backgroundSecondary,
           borderTopWidth: 1,
           borderTopColor: colors.border,
           height: 60,

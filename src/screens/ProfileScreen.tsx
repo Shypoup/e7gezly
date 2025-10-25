@@ -27,7 +27,7 @@ type ProfileScreenProps = {
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const dispatch = useAppDispatch();
-  const { demoMode } = useAppSelector((state) => state.auth);
+  const { customerName, customerEmail, customerPhone, customerGender, username, role } = useAppSelector((state) => state.auth);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
   const handleLogout = () => {
@@ -60,79 +60,104 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         {/* Profile Info */}
         <View style={styles.profileCard}>
           <View style={styles.avatarContainer}>
-            <Icon name="person" size={40} color="#1a73e8" />
+            <Icon name="person" size={40} color={colors.activeIcon} />
           </View>
-          <Text style={styles.userName}>Demo User</Text>
-          <Text style={styles.userEmail}>customer@gmail.com</Text>
-          {demoMode && (
-            <View style={styles.demoModeBadge}>
-              <Icon name="flag" size={14} color="#856404" style={styles.demoModeIcon} />
-              <Text style={styles.demoModeText}>Demo Mode</Text>
-            </View>
-          )}
+          <Text style={styles.userName}>{customerName || 'User'}</Text>
+          <Text style={styles.userEmail}>{customerEmail || 'user@email.com'}</Text>
+          
+          {/* User Details */}
+          <View style={styles.userDetailsContainer}>
+            {customerPhone && (
+              <View style={styles.detailItem}>
+                <Icon name="call-outline" size={18} color={colors.textSecondary} />
+                <Text style={styles.detailText}>{customerPhone}</Text>
+              </View>
+            )}
+            
+            {customerGender && (
+              <View style={styles.detailItem}>
+                <Icon name={customerGender.toLowerCase() === 'male' ? 'male' : 'female'} size={18} color={colors.textSecondary} />
+                <Text style={styles.detailText}>{customerGender}</Text>
+              </View>
+            )}
+            
+            {username && (
+              <View style={styles.detailItem}>
+                <Icon name="person-circle-outline" size={18} color={colors.textSecondary} />
+                <Text style={styles.detailText}>@{username}</Text>
+              </View>
+            )}
+            
+            {role && (
+              <View style={styles.detailItem}>
+                <Icon name="shield-checkmark-outline" size={18} color={colors.textSecondary} />
+                <Text style={styles.detailText}>{role}</Text>
+              </View>
+            )}
+          </View>
         </View>
 
         {/* Menu Items */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>
           <TouchableOpacity style={styles.menuItem} onPress={navigateToComingSoon}>
-            <Icon name="person-outline" size={24} color="#666" style={styles.menuIcon} />
+            <Icon name="person-outline" size={24} color={colors.menuIcon} style={styles.menuIcon} />
             <Text style={styles.menuText}>Edit Profile</Text>
-            <Icon name="chevron-forward" size={24} color="#ccc" />
+            <Icon name="chevron-forward" size={24} color={colors.chevronIcon} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} onPress={navigateToComingSoon}>
-            <Icon name="lock-closed-outline" size={24} color="#666" style={styles.menuIcon} />
+            <Icon name="lock-closed-outline" size={24} color={colors.menuIcon} style={styles.menuIcon} />
             <Text style={styles.menuText}>Change Password</Text>
-            <Icon name="chevron-forward" size={24} color="#ccc" />
+            <Icon name="chevron-forward" size={24} color={colors.chevronIcon} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} onPress={navigateToComingSoon}>
-            <Icon name="phone-portrait-outline" size={24} color="#666" style={styles.menuIcon} />
+            <Icon name="phone-portrait-outline" size={24} color={colors.menuIcon} style={styles.menuIcon} />
             <Text style={styles.menuText}>Manage Devices</Text>
-            <Icon name="chevron-forward" size={24} color="#ccc" />
+            <Icon name="chevron-forward" size={24} color={colors.chevronIcon} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preferences</Text>
           <TouchableOpacity style={styles.menuItem} onPress={navigateToComingSoon}>
-            <Icon name="notifications-outline" size={24} color="#666" style={styles.menuIcon} />
+            <Icon name="notifications-outline" size={24} color={colors.menuIcon} style={styles.menuIcon} />
             <Text style={styles.menuText}>Notifications</Text>
-            <Icon name="chevron-forward" size={24} color="#ccc" />
+            <Icon name="chevron-forward" size={24} color={colors.chevronIcon} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} onPress={navigateToComingSoon}>
-            <Icon name="moon-outline" size={24} color="#666" style={styles.menuIcon} />
+            <Icon name="moon-outline" size={24} color={colors.menuIcon} style={styles.menuIcon} />
             <Text style={styles.menuText}>Dark Mode</Text>
-            <Icon name="chevron-forward" size={24} color="#ccc" />
+            <Icon name="chevron-forward" size={24} color={colors.chevronIcon} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} onPress={navigateToComingSoon}>
-            <Icon name="globe-outline" size={24} color="#666" style={styles.menuIcon} />
+            <Icon name="globe-outline" size={24} color={colors.menuIcon} style={styles.menuIcon} />
             <Text style={styles.menuText}>Language</Text>
-            <Icon name="chevron-forward" size={24} color="#ccc" />
+            <Icon name="chevron-forward" size={24} color={colors.chevronIcon} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Support</Text>
           <TouchableOpacity style={styles.menuItem} onPress={navigateToComingSoon}>
-            <Icon name="help-circle-outline" size={24} color="#666" style={styles.menuIcon} />
+            <Icon name="help-circle-outline" size={24} color={colors.menuIcon} style={styles.menuIcon} />
             <Text style={styles.menuText}>Help Center</Text>
-            <Icon name="chevron-forward" size={24} color="#ccc" />
+            <Icon name="chevron-forward" size={24} color={colors.chevronIcon} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} onPress={navigateToComingSoon}>
-            <Icon name="call-outline" size={24} color="#666" style={styles.menuIcon} />
+            <Icon name="call-outline" size={24} color={colors.menuIcon} style={styles.menuIcon} />
             <Text style={styles.menuText}>Contact Us</Text>
-            <Icon name="chevron-forward" size={24} color="#ccc" />
+            <Icon name="chevron-forward" size={24} color={colors.chevronIcon} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} onPress={navigateToComingSoon}>
-            <Icon name="star-outline" size={24} color="#666" style={styles.menuIcon} />
+            <Icon name="star-outline" size={24} color={colors.menuIcon} style={styles.menuIcon} />
             <Text style={styles.menuText}>Rate App</Text>
-            <Icon name="chevron-forward" size={24} color="#ccc" />
+            <Icon name="chevron-forward" size={24} color={colors.chevronIcon} />
           </TouchableOpacity>
         </View>
 
@@ -183,7 +208,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     padding: 20,
     paddingTop: 60,
     borderBottomWidth: 1,
@@ -232,25 +257,24 @@ const styles = StyleSheet.create({
   userEmail: {
     fontSize: 14,
     color: colors.textSecondary,
+    marginBottom: 16,
   },
-  demoModeBadge: {
-    backgroundColor: colors.demoBackground,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: colors.demoBorder,
+  userDetailsContainer: {
+    width: '100%',
+    marginTop: 8,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderLight,
+  },
+  detailItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 8,
+    gap: 12,
   },
-  demoModeIcon: {
-    marginRight: 6,
-  },
-  demoModeText: {
-    fontSize: 12,
-    color: colors.demoText,
-    fontWeight: '600',
+  detailText: {
+    fontSize: 15,
+    color: colors.textPrimary,
   },
   section: {
     marginTop: 16,
@@ -264,7 +288,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   menuItem: {
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
@@ -280,7 +304,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   logoutButton: {
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     marginHorizontal: 16,
     marginTop: 24,
     marginBottom: 16,
@@ -308,7 +332,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 20,
     padding: 24,
     width: '85%',

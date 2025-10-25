@@ -5,36 +5,56 @@ import { LoginRequest } from '../../types';
 
 interface AuthState {
   token: string | null;
+  refreshToken: string | null;
   userId: number | null;
+  username: string | null;
+  role: string | null;
+  customerName: string | null;
+  customerEmail: string | null;
+  customerPhone: string | null;
+  customerGender: string | null;
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
-  demoMode: boolean;
 }
 
 const initialState: AuthState = {
   token: null,
+  refreshToken: null,
   userId: null,
+  username: null,
+  role: null,
+  customerName: null,
+  customerEmail: null,
+  customerPhone: null,
+  customerGender: null,
   isAuthenticated: false,
   loading: false,
   error: null,
-  demoMode: false,
 };
 
 // Async thunks
 export const login = createAsyncThunk(
   'auth/login',
   async (
-    payload: { credentials: LoginRequest; demoMode: boolean },
+    credentials: LoginRequest,
     { rejectWithValue },
   ) => {
     try {
-      const { credentials, demoMode } = payload;
-      const response = await AuthApi.login(credentials, demoMode);
-      const { token, id } = response.data;
+      const response = await AuthApi.login(credentials);
+      const { token, refreshToken, id, username, role, customerResponse } = response.data;
       await StorageService.saveToken(token);
-      await StorageService.saveDemoMode(demoMode);
-      return { token, userId: id, demoMode };
+      return { 
+        token, 
+        refreshToken,
+        userId: id,
+        username,
+        role,
+        customerName: customerResponse.customerName,
+        customerEmail: customerResponse.customerEmail,
+        customerPhone: customerResponse.customerPhone,
+        customerGender: customerResponse.customerGender,
+      };
     } catch (error: any) {
       return rejectWithValue(error?.response?.data?.responseMessage || 'Something went wrong please try again later');
     }
@@ -43,13 +63,11 @@ export const login = createAsyncThunk(
 
 export const logout = createAsyncThunk('auth/logout', async () => {
   await StorageService.removeToken();
-  await StorageService.removeDemoMode();
 });
 
 export const checkAuthStatus = createAsyncThunk('auth/checkStatus', async () => {
   const token = await StorageService.getToken();
-  const demoMode = await StorageService.getDemoMode();
-  return { token, demoMode };
+  return { token };
 });
 
 const authSlice = createSlice({
@@ -58,9 +76,6 @@ const authSlice = createSlice({
   reducers: {
     clearError: (state) => {
       state.error = null;
-    },
-    setDemoMode: (state, action) => {
-      state.demoMode = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -73,8 +88,14 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
         state.token = action.payload.token;
+        state.refreshToken = action.payload.refreshToken;
         state.userId = action.payload.userId;
-        state.demoMode = action.payload.demoMode;
+        state.username = action.payload.username;
+        state.role = action.payload.role;
+        state.customerName = action.payload.customerName;
+        state.customerEmail = action.payload.customerEmail;
+        state.customerPhone = action.payload.customerPhone;
+        state.customerGender = action.payload.customerGender;
         state.isAuthenticated = true;
         state.error = null;
       })
@@ -85,21 +106,26 @@ const authSlice = createSlice({
       // Logout
       .addCase(logout.fulfilled, (state) => {
         state.token = null;
+        state.refreshToken = null;
         state.userId = null;
+        state.username = null;
+        state.role = null;
+        state.customerName = null;
+        state.customerEmail = null;
+        state.customerPhone = null;
+        state.customerGender = null;
         state.isAuthenticated = false;
-        state.demoMode = false;
       })
       // Check auth status
       .addCase(checkAuthStatus.fulfilled, (state, action) => {
         if (action.payload.token) {
           state.token = action.payload.token;
-          state.demoMode = action.payload.demoMode;
           state.isAuthenticated = true;
         }
       });
   },
 });
 
-export const { clearError, setDemoMode } = authSlice.actions;
+export const { clearError } = authSlice.actions;
 export default authSlice.reducer;
 

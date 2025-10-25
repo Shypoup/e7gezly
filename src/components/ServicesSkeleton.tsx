@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     padding: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   card: {
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 20,
     marginBottom: 16,
     shadowColor: colors.shadow,

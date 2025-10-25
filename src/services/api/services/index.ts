@@ -4,12 +4,8 @@ import {
   CalendarSlot,
 } from '../../../types';
 import { StorageService } from '../../../utils/storage';
-import {
-  mockServices,
-  mockCalendarSlots,
-} from '../../../utils/mockData';
 
-const BASE_URL = 'https://e7gezly-1054846845303.us-central1.run.app/api';
+const BASE_URL = 'https://e7gezly-1054846845303.us-central1.run.app/api/v1';
 
 class ServicesApiService {
   private async request<T>(
@@ -23,7 +19,7 @@ class ServicesApiService {
           'Content-Type': 'application/json',
           ...options.headers,
         },
-      });
+      });     
 
       const data = await response.json();
 
@@ -38,20 +34,13 @@ class ServicesApiService {
     }
   }
 
-  private async delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
   async getServices(
-    demoMode: boolean = false,
+    serviceTypeId: number = 3,
+    clientId: number = 166,
   ): Promise<ApiResponse<Service[]>> {
-    if (demoMode) {
-      await this.delay(600); // Simulate network delay
-      return mockServices;
-    }
     const token = await StorageService.getToken();
     return this.request<Service[]>(
-      "/v1/clientService/services",
+      `/clientService/services?serviceTypeId=${serviceTypeId}&clientId=${clientId}`,
       {
         method: 'GET',
         headers: {
@@ -63,15 +52,10 @@ class ServicesApiService {
 
   async getCalendarSetup(
     serviceId: number,
-    demoMode: boolean = false,
   ): Promise<ApiResponse<CalendarSlot[]>> {
-    if (demoMode) {
-      await this.delay(700); // Simulate network delay
-      return mockCalendarSlots;
-    }
     const token = await StorageService.getToken();
     return this.request<CalendarSlot[]>(
-      `/v1/bookingRequests/calendar/setup?serviceId=${serviceId}`,
+      `/bookingRequests/calendar/setup?serviceId=${serviceId}`,
       {
         method: 'GET',
         headers: {

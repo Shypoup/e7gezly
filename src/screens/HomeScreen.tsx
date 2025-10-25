@@ -49,21 +49,21 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           <Text style={styles.sectionTitle}>Key Benefits</Text>
           <View style={styles.benefitsList}>
             <View style={styles.benefitItem}>
-              <Icon name="calendar-outline" size={20} color="#4C6FFF" />
+              <Icon name="calendar-outline" size={20} color={colors.primary} />
               <Text style={styles.benefitText}>
                 <Text style={styles.benefitBold}>Easy Booking:</Text> Schedule
                 appointments effortlessly.
               </Text>
             </View>
             <View style={styles.benefitItem}>
-              <Icon name="shield-checkmark-outline" size={20} color="#4C6FFF" />
+              <Icon name="shield-checkmark-outline" size={20} color={colors.primary} />
               <Text style={styles.benefitText}>
                 <Text style={styles.benefitBold}>Secure Login:</Text> Your data
                 is always protected.
               </Text>
             </View>
             <View style={styles.benefitItem}>
-              <Icon name="grid-outline" size={20} color="#4C6FFF" />
+              <Icon name="grid-outline" size={20} color={colors.primary} />
               <Text style={styles.benefitText}>
                 <Text style={styles.benefitBold}>Diverse Services:</Text>{' '}
                 Explore a wide range of options.
@@ -134,24 +134,24 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               onPress={navigateToServices}
             >
               <View style={styles.serviceIconContainer}>
-                <Icon name="calendar-outline" size={24} color="#4C6FFF" />
+                <Icon name="calendar-outline" size={24} color={colors.primary} />
               </View>
               <Text style={styles.serviceText}>Book Appointment</Text>
-              <Icon name="chevron-forward" size={20} color="#ccc" />
+              <Icon name="chevron-forward" size={20} color={colors.chevronIcon} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.serviceItem} onPress={navigateToComingSoon}>
               <View style={styles.serviceIconContainer}>
-                <Icon name="grid-outline" size={24} color="#4C6FFF" />
+                <Icon name="grid-outline" size={24} color={colors.primary} />
               </View>
               <Text style={styles.serviceText}>Browse Categories</Text>
-              <Icon name="chevron-forward" size={20} color="#ccc" />
+              <Icon name="chevron-forward" size={20} color={colors.chevronIcon} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.serviceItem} onPress={navigateToComingSoon}>
               <View style={styles.serviceIconContainer}>
-                <Icon name="search-outline" size={24} color="#4C6FFF" />
+                <Icon name="search-outline" size={24} color={colors.primary} />
               </View>
               <Text style={styles.serviceText}>Find Professionals</Text>
-              <Icon name="chevron-forward" size={20} color="#ccc" />
+              <Icon name="chevron-forward" size={20} color={colors.chevronIcon} />
             </TouchableOpacity>
           </View>
         </View>
@@ -162,7 +162,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           <View style={styles.activityList}>
             <TouchableOpacity style={styles.activityItem}>
               <View style={styles.activityIconContainer}>
-                <Icon name="calendar-outline" size={20} color="#666" />
+                <Icon name="calendar-outline" size={20} color={colors.menuIcon} />
               </View>
               <View style={styles.activityContent}>
                 <Text style={styles.activityTitle}>
@@ -172,11 +172,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                   Your dental check-up is scheduled for...
                 </Text>
               </View>
-              <Icon name="chevron-forward" size={20} color="#ccc" />
+              <Icon name="chevron-forward" size={20} color={colors.chevronIcon} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.activityItem}>
               <View style={styles.activityIconContainer}>
-                <Icon name="card-outline" size={20} color="#666" />
+                <Icon name="card-outline" size={20} color={colors.menuIcon} />
               </View>
               <View style={styles.activityContent}>
                 <Text style={styles.activityTitle}>
@@ -186,7 +186,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                   Successfully paid for your session on...
                 </Text>
               </View>
-              <Icon name="chevron-forward" size={20} color="#ccc" />
+              <Icon name="chevron-forward" size={20} color={colors.chevronIcon} />
             </TouchableOpacity>
           </View>
         </View>
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   header: {
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     padding: 4,
     flexDirection: 'row',
     justifyContent: 'center',

@@ -96,10 +96,10 @@ const TimeSlotSkeleton: React.FC<{ opacity: Animated.AnimatedInterpolation<strin
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
   },
   header: {
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     padding: 20,
     paddingTop: 60,
     flexDirection: 'row',
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   dateCard: {
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 12,
     padding: 16,
     paddingHorizontal: 24,
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   timeSlotCard: {
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 12,
     padding: 20,
     width: '48%',

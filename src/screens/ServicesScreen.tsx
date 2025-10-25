@@ -32,15 +32,16 @@ const ServicesScreen: React.FC<ServicesScreenProps> = ({ navigation }) => {
   const { services, loading, error } = useAppSelector(
     (state) => state.services,
   );
-  // Demo mode is used to show the demo services
-  const { demoMode } = useAppSelector((state) => state.auth);
+
 
   useEffect(() => {
-    dispatch(fetchServices(demoMode));
-  }, [dispatch, demoMode]);
+    // To be handled as business logic later on
+    dispatch(fetchServices({ serviceTypeId: 3, clientId: 166 }));
+  }, [dispatch]);
   // Handle refresh is used to refresh the services
   const handleRefresh = () => {
-    dispatch(fetchServices(demoMode));
+    // To be handled as business logic later on
+    dispatch(fetchServices({ serviceTypeId: 3, clientId: 166 }));
   };
   // Handle service press is used to navigate to the calendar screen
   const handleServicePress = (service: Service) => {
@@ -54,48 +55,53 @@ const ServicesScreen: React.FC<ServicesScreenProps> = ({ navigation }) => {
     return iconColors[index % iconColors.length];
   };
 
-  const renderServiceItem = ({ item, index }: { item: Service; index: number }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => handleServicePress(item)}
-      activeOpacity={0.7}>
-      <View style={styles.cardContent}>
-        <View style={[styles.iconContainer, { backgroundColor: getIconBackground(index) }]}>
-          {item.logo ? (
-            <FastImage
-              source={{ 
-                uri: item.logo,
-                priority: FastImage.priority.high,
-              }}
-              style={styles.iconImage}
-              resizeMode={FastImage.resizeMode.contain}
-            />
+  const renderServiceItem = ({ item, index }: { item: Service; index: number }) => {
+    // Get the image from clientServiceImagesList or fallback to logo field
+    const imageUrl = item.clientServiceImagesList?.[0]?.image || item.logo;
+    
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => handleServicePress(item)}
+        activeOpacity={0.7}>
+        <View style={styles.cardContent}>
+          <View style={[styles.iconContainer, { backgroundColor: getIconBackground(index) }]}>
+            {imageUrl ? (
+              <FastImage
+                source={{ 
+                  uri: imageUrl,
+                  priority: FastImage.priority.high,
+                }}
+                style={styles.iconImage}
+                resizeMode={FastImage.resizeMode.contain}
+              />
           ) : (
-            <Icon name="medical" size={40} color="#5B4D9D" />
+            <Icon name="medical" size={40} color={colors.primary} />
           )}
-        </View>
-        <View style={styles.textContainer}>
-          <Text style={styles.serviceName}>{item.serviceName.en}</Text>
-          <Text style={styles.serviceNameAr}>{item.serviceName.ar}</Text>
-          <View style={styles.statusRow}>
-            <Text
-              style={[
-                styles.statusText,
-                item.serviceStatus === 1 ? styles.statusAvailable : styles.statusBusy,
-              ]}>
-              {item.serviceStatus === 1 ? 'Available' : 'Busy'}
-            </Text>
-            {item.serviceFees > 0 ? (
-              <Text style={styles.fees}>${item.serviceFees}</Text>
-            ) : (
-              <Text style={styles.freeText}>Free</Text>
-            )}
           </View>
+          <View style={styles.textContainer}>
+            <Text style={styles.serviceName}>{item.serviceName.en}</Text>
+            <Text style={styles.serviceNameAr} numberOfLines={1}>{item.details}</Text>
+            <View style={styles.statusRow}>
+              <Text
+                style={[
+                  styles.statusText,
+                  item.serviceStatus === 1 ? styles.statusAvailable : styles.statusBusy,
+                ]}>
+                {item.serviceStatus === 1 ? 'Available' : 'Busy'}
+              </Text>
+              {item.serviceFees > 0 ? (
+                <Text style={styles.fees}>${item.serviceFees}</Text>
+              ) : (
+                <Text style={styles.freeText}>Free</Text>
+              )}
+            </View>
+          </View>
+          <Text style={styles.chevron}>›</Text>
         </View>
-        <Text style={styles.chevron}>›</Text>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   if (loading && services.length === 0) {
     return <ServicesSkeleton />;
@@ -110,7 +116,7 @@ const ServicesScreen: React.FC<ServicesScreenProps> = ({ navigation }) => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Services</Text>
         <TouchableOpacity style={styles.notificationButton} onPress={() => navigation.navigate('Notifications')}>
-          <Icon name="notifications-outline" size={24} color="#000" />
+          <Icon name="notifications-outline" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
       </View>
      
@@ -136,7 +142,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    backgroundColor: colors.backgroundWhite,
+    backgroundColor: colors.backgroundSecondary,
     padding: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -151,16 +157,6 @@ const styles = StyleSheet.create({
   },
   notificationButton: {
     padding: 8,
-  },
-  demoModeBanner: {
-    backgroundColor: colors.demoBackground,
-    padding: 12,
-    alignItems: 'center',
-  },
-  demoModeText: {
-    fontSize: 12,
-    color: colors.demoText,
-    fontWeight: '600',
   },
   listContainer: {
     padding: 20,
